@@ -1,12 +1,12 @@
 # Import delle librerie
 from sklearn import tree  
-from sklearn.ensemble import RandomForestClassifier
 import numpy as np
 import matplotlib.pyplot as plt
 import utils
 import classification_net
 import torch
 import sys
+import manual_tree
 
 #set random seed
 np.random.seed(0)
@@ -22,8 +22,16 @@ def net():
     utils.plot(X,y, net, title="Neural Network", pause=True)
     utils.classification_stats(y_t.numpy(), net.predict(X_t))
 
+def manual():
+    clf = manual_tree.DecisionTree(max_depth=3)
+    clf.fit(X, y)
+    clf.predict(X)
+    print(clf)
+    utils.plot(X,y, clf, pause=True)
+    utils.classification_stats(y, clf.predict(X))
 
-def tree():
+
+def classification_tree():
     clf = tree.DecisionTreeClassifier(
             max_depth=3, 			    # Profondità massima dell'albero
             )                           # Creazione del classificatore
@@ -46,6 +54,8 @@ def tree():
 
 if __name__ == "__main__":
     if sys.argv[1] == "tree":
-        tree()
+        classification_tree()
     elif sys.argv[1] == "net":
         net()
+    elif sys.argv[1] == "manual":
+        manual()
