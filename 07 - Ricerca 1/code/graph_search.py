@@ -34,11 +34,15 @@ class Agent():
         path = self.frontier[0]
         self.frontier = self.frontier[1:]
         if self.is_goal(path[-1]):
-            return path
+            yield path
         next_paths = [path + [state] for state in self.next_states(path) if state not in path]
         self.frontier += next_paths
-        return self.bfs() 
+        yield from self.bfs() 
 
 if __name__ == "__main__":
-    a = Agent(graph, 'A', 'H')
-    print(a.bfs())
+    a = Agent(graph, 'A', 'B')
+    min_length = float('inf')
+    for path in a.bfs():
+        if len(path) <= min_length:
+            min_length = len(path)
+        print(path)

@@ -1,4 +1,6 @@
 import copy
+import matplotlib.pyplot as plt
+import numpy as np
 
 class Agent():
     def __init__(self):
@@ -49,10 +51,34 @@ class Agent():
         path = self.frontier[0]
         self.frontier = self.frontier[1:]
         if self.is_goal(path[-1]):
-            return path
+            yield path
         next_paths = [path + [state] for state in self.next_states(path[-1]) if state not in path]
         self.frontier += next_paths
-        return self.bfs()
+        yield from self.bfs()
+
+    def plot_states(self, path):
+        """
+        Ispirato dal codice di Giuseppe Rizzo
+        """
+        offsets= {'L': -1, 'R': 1}
+        coords = []
+        for i, state in enumerate(path):
+            for side in ['L', 'R']:
+                offset = offsets[side]
+                for _ in range(state[side]['missionaries']):
+                    coords.append([offsets[side] + offset, -i, 0])
+                    offset += offsets[side]
+                for _ in range(state[side]['cannibals']):
+                    coords.append([offsets[side] + offset, -i, 1])
+                    offset += offsets[side]
+        coords = np.array(coords)
+        missionaries_coords = coords[coords[:, 2] == 0]
+        cannibals_coords    = coords[coords[:, 2] == 1]
+        plt.scatter(missionaries_coords[:, 0], missionaries_coords[:, 1], c='b')
+        plt.scatter(cannibals_coords[:, 0], cannibals_coords[:, 1], c='r')
+        # add legend
+        plt.legend(['missionaries', 'cannibals'], loc='lower left')
+        plt.show()
 
     def states_to_moves(self, path):
         moves = []
@@ -67,11 +93,13 @@ class Agent():
         return moves
 
     def solve(self):
-        path = self.bfs()
-        if path:
-            return self.states_to_moves(path)
-        else:
-            return None
+        paths = self.bfs()
+        for path in paths:
+            if path:
+                self.plot_states(path)
+                return self.states_to_moves(path)
+            else:
+                return None
 
 if __name__ == "__main__":
     agent = Agent()
