@@ -35,6 +35,9 @@ class Agent():
         self.frontier = self.frontier[1:]
         if self.is_goal(path[-1]):
             yield path
+        # NOTA BENE: se avessimo un "else" qui, una volta trovato il goal,
+        # non verrebbero più cercati altri percorsi nonostante l'utilizzo
+        # del "yield" (che permette di continuare la ricerca)
         next_paths = [path + [state] for state in self.next_states(path) if state not in path]
         self.frontier += next_paths
         yield from self.bfs() 
