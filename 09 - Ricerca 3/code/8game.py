@@ -76,7 +76,7 @@ class Agent():
             yield from self.greedy()
 
     def astar(self):
-        while self.frontier != []:
+        if self.frontier != []:
             path = self.frontier.pop(0)
             if path[-1] == self.goal:
                 yield path
