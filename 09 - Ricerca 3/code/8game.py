@@ -18,6 +18,7 @@ class Agent():
         for move in self.moves:
             new_state = self.move(state, move)
             if new_state and new_state not in path:
+                self.generated_states += 1
                 yield path + [new_state]
 
     def move(self, state, move):
@@ -40,7 +41,6 @@ class Agent():
                 yield path
             new_states = [next_path for next_path in self.next_paths(path)]
             self.frontier += new_states
-            self.generated_states += len(new_states)
             yield from self.bfs()
 
     def dfs(self, depth=0):
@@ -50,7 +50,6 @@ class Agent():
                 yield path
             for next_path in self.next_paths(path):
                 self.frontier = [next_path]
-                self.generated_states += 1
                 yield from self.dfs(depth=depth - 1)
 
     def ids(self):
@@ -71,7 +70,6 @@ class Agent():
                 yield path
             new_states = [next_path for next_path in self.next_paths(path)]
             self.frontier += new_states
-            self.generated_states += len(new_states)
             self.frontier.sort(key=lambda path: self.heuristic(path[-1]))
             yield from self.greedy()
 
@@ -82,7 +80,6 @@ class Agent():
                 yield path
             new_states = [next_path for next_path in self.next_paths(path)]
             self.frontier += new_states
-            self.generated_states += len(new_states)
             self.frontier.sort(key=lambda path: self.heuristic(path[-1]) + len(path))
             yield from self.astar()
 
