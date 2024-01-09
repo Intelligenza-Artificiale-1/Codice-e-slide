@@ -1,0 +1,5 @@
+bnlearn==0.8.2
+scikit-learn==1.0.2   
+torch==1.12.1  
+numpy==1.26.0  
+matplotlib==3.5.1   
