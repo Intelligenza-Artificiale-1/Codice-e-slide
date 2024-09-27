@@ -3,7 +3,7 @@ import random
 
 class Environment():
     def __init__(self):
-        self._location_condition = {'A':'Dirty', 'B':'Dirty'} 
+        self._world = {'A':'Dirty', 'B':'Dirty'} 
         self._vacuum_location = 'A'
 
     def _step(self):
@@ -11,7 +11,7 @@ class Environment():
 
     @property
     def status(self) -> str:
-        return self._location_condition[self._vacuum_location]
+        return self._world[self._vacuum_location]
 
     @property
     def vacuum_location(self) -> str:
@@ -36,11 +36,11 @@ class Environment():
         self._step()
 
     def clean(self):
-        self._location_condition[self._vacuum_location] = 'Clean'
+        self._world[self._vacuum_location] = 'Clean'
         self._step()
 
     def __str__(self) -> str:
-        return f"Vacuum in location {self._vacuum_location}, state: {self._location_condition}"
+        return f"Vacuum in location {self._vacuum_location}, state: {self._world}"
 
 
 # Vacuum agents
@@ -174,9 +174,9 @@ class DynamicEnvironment(Environment):
     def step(self):
         if random.random() > 0.6:
             if random.random() > 0.5:
-                self._location_condition['A'] = 'Dirty'
+                self._world['A'] = 'Dirty'
             else:
-                self._location_condition['B'] = 'Dirty'
+                self._world['B'] = 'Dirty'
         super().step()
 
 class NoisyEnvironment(Environment):
@@ -186,7 +186,7 @@ class NoisyEnvironment(Environment):
     @property
     def status(self):
         if random.random() > 0.3:
-            return self._location_condition[self._vacuum_location]
+            return self._world[self._vacuum_location]
         else:
             return 'Clean'
 
