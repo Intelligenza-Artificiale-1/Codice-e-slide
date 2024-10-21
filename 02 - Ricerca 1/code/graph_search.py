@@ -11,13 +11,7 @@ graph = {'A': ['B', 'C'],
          'G': ['D', 'E', 'F']}
 
 # Each arc is represented as a tuple (node1, node2)
-graph2 =[('A','B') ,('A','C'),
-         ('B','A'), ('B','D'), ('B','E'),
-         ('C', 'A'), ('C','F'),
-		 ('D', 'B'), ('D','G'),
-         ('E', 'B'), ('E','G'),
-         ('F', 'C'), ('F','G'),
-         ('G', 'D'), ('G','E'), ('G','F')]
+graph2 = []
 
 class Agent():
     def __init__(self, graph, start, goal):
@@ -26,27 +20,14 @@ class Agent():
         self.frontier = [[start]]
 
     def next_states(self, path):
-        #return [ n for n in graph[path[-1]] if n not in path ]
-        states = []
-        for n in graph[path[-1]]:
-            if n not in path:
-                states.append(n)
-        return states
+        pass
 
     def is_goal(self, state):
-        return state == self.goal
+        pass
 
     def bfs(self):
-        if self.frontier == []:
-            yield []
-        else:
-            path = self.frontier.pop(0)
-            if self.is_goal(path[-1]):
-                yield path
-            # self.frontier += [path+[n] for n in self.next_states(path)]
-            for n in self.next_states(path):
-                self.frontier.append(path+[n])
-            yield from self.bfs()
+        #...
+        yield from self.bfs() 
 
 class Agent2(Agent):
     # graph as list of arcs, bfs iterative instead of recursive
@@ -54,30 +35,19 @@ class Agent2(Agent):
         super().__init__(graph, start, goal)
 
     def next_states(self, path):
-        # return ( j for i,j in self.graph if i == path[-1] and j not in path )
-        states = []
-        for i,j in self.graph:
-            if i == path[-1] and j not in path:
-                states.append(j)
-        return states
-
+        pass
 
     def bfs(self):
-        while self.frontier:
-            path = self.frontier.pop(0)
-            if self.is_goal(path[-1]):
-                yield path
-            else:
-                self.frontier += [path+[n] for n in self.next_states(path)]
+        pass
 
 
 
 if __name__ == "__main__":
-    edgelist = True
+    edgelist = False
     if edgelist:
-        a = Agent2(graph2, 'A', 'G')
+        a = Agent2(graph2, 'A', 'D')
     else:
-        a = Agent(graph, 'A', 'G')
+        a = Agent(graph, 'A', 'D')
     min_length = float('inf')
     for path in a.bfs():
         if len(path) <= min_length:

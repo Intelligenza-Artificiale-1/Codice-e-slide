@@ -16,49 +16,19 @@ class Agent():
         self.frontier = [[self.start]]
 
     def is_valid(self, state):
-        for side in ['L','R']:
-            if state[side]['m']> 0 and state[side]['m'] < state[side]['c']:
-                return False
-            for type in ['m','c']:
-                if state[side][type] < 0:
-                    return False
         return True
 
     def apply_move(self, state, move):
-        new_state = copy.deepcopy(state)
-        #new_state['boat'] = 'R' if state['boat'] == 'L' else 'L'
-        if state['boat'] == 'L':
-            new_state['boat'] = 'R'
-        else:
-            new_state['boat'] = 'L'
-
-        new_state[state['boat']]['m'] -= move['m']
-        new_state[state['boat']]['c'] -= move['c']
-
-        new_state[new_state['boat']]['m'] += move['m']
-        new_state[new_state['boat']]['c'] += move['c']
-
-        return new_state
+        return state
 
     def next_states(self, state):
-        # return ( s for m in moves if self.is_valid(s:=self.apply_move(state, m)))
-        states = []
-        for m in self.moves:
-            s = self.apply_move(state, m)
-            if self.is_valid(s):
-                states.append(s)
-        return states
+        return [state]
 
     def is_goal(self, state):
-        return state == self.goal
+        return True
 
     def bfs(self):
-        while self.frontier:
-            path = self.frontier.pop(0)
-            if self.is_goal(path[-1]):
-                yield path
-            else:
-                self.frontier += [path+[s] for s in self.next_states(path[-1]) if s not in path]
+        yield self.frontier[0]
 
     def states_to_moves(self, path):
         return []
