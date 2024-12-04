@@ -39,18 +39,7 @@ def main1():
 
     print(f"Farenheit = Celsius * {model.fc1.weight.item():.2f} + {model.fc1.bias.item():.2f}")
 
-    def f(x,y, dataset):
-        loss = 0
-        return sum((x * s1 + y - s2) ** 2 for s1, s2 in dataset) / len(dataset)
-
-    def draw_heatmap(f, x_min, x_max, y_min, y_max, dataset):
-        X = torch.linspace(x_min, x_max, 100)
-        Y = torch.linspace(y_min, y_max, 100)
-        Z = torch.Tensor([[f(x, y, dataset) for x in X] for y in Y]).T
-        X, Y = torch.meshgrid(X, Y)
-        plt.contourf(X, Y, Z, 50, cmap='RdGy')
-        plt.colorbar()
-    draw_heatmap(f, 0, 5, 0, 40, dataset)
+    draw_mse_gradient_heatmap(0, 5, 0, 40, dataset)
     plt.plot(W, B, 'o-')
     plt.scatter([1.8], [36], c='g')
     plt.show()

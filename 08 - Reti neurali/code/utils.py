@@ -49,3 +49,15 @@ def plot2(X,y, model, title="", temp=False):
             plt.clf()
         else:
             plt.show()
+
+def draw_mse_gradient_heatmap(x_min, x_max, y_min, y_max, dataset):
+    def f(x,y, dataset):
+        loss = 0
+        return sum((x * s1 + y - s2) ** 2 for s1, s2 in dataset) / len(dataset)
+
+    X = torch.linspace(x_min, x_max, 100)
+    Y = torch.linspace(y_min, y_max, 100)
+    Z = torch.Tensor([[f(x, y, dataset) for x in X] for y in Y]).T
+    X, Y = torch.meshgrid(X, Y)
+    plt.contourf(X, Y, Z, 50, cmap='RdGy')
+    plt.colorbar()
