@@ -45,7 +45,7 @@ def plot2(X,y, model, title="", temp=False):
         plt.title(title)
         # show the plot
         if temp:
-            plt.pause(1)
+            plt.pause(0.1)
             plt.clf()
         else:
             plt.show()

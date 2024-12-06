@@ -43,7 +43,7 @@ class Classifier(nn.Module):
                 loss.backward()
                 epoch_loss += loss.item()
                 optimizer.step()
-            average_loss = epoch_loss / len(dataloader)
+            average_loss = epoch_loss #/ len(dataloader)
             losses.append(average_loss)
         return losses
 
@@ -67,6 +67,7 @@ def main():
         plot2(test_x, test_y, model, title=f"After training, loss={l[-1]}", temp=True)
         losses += l
     plot2(test_x, test_y, model, title=f"After training, loss={l[-1]}", temp=False)
+    plt.ylim(0,16)
     plt.plot(losses)
     plt.show()
 
