@@ -39,7 +39,7 @@ def main():
     X_train, X_test, y_train, y_test = load_dataset()
     model = NeuralNet()
     #Determinare numero di epoche e learning rate
-    losses = model.fit(model, X_train, y_train, epochs=0, lr=0)
+    losses = model.fit(X_train, y_train)
     plt.plot(losses)
     plt.show()
     with torch.no_grad():
