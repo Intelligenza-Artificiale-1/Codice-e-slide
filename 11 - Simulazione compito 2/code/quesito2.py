@@ -19,4 +19,4 @@ p_nobarometer_low_given_low_pressure = 1 - p_barometer_low_given_low_pressure
 cpd_barometer = TabularCPD(variable='Barometer', variable_card=2, evidence=['Low Pressure'], evidence_card=[2], values=[[0.1, p_barometer_low_given_low_pressure], [0.9, p_nobarometer_low_given_low_pressure]])
 
 dag  = bn.make_DAG(edges, CPD=[cpd_west_wind, cpd_barometer, cpd_rain, cpd_low_pressure, cpd_red_sky])
-print(bn.inference.fit(dag, variables=['Rain'], evidence={'Red Sky': 1, 'Low Pressure': 1}))
+print(bn.inference.fit(dag, variables=['Rain'], evidence={'Red Sky': 1, 'Low Pressure': 0}))
