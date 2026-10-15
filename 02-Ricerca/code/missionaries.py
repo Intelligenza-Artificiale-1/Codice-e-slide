@@ -16,23 +16,58 @@ class Agent():
         self.frontier = [[self.start]]
 
     def is_valid(self, state):
+        for sponda in ('L','R'):
+            if not all(0 <= state[sponda][p] <= 3 for p in ('c','m')):
+                return False
+            if state[sponda]['m']>0 and  state[sponda]['m'] < state[sponda]['c']:
+                return False
         return True
 
     def apply_move(self, state, move):
-        return state
+        # move = {'m':X, 'c':Y}
+        new_state = copy.deepcopy(state)
+        src = state['boat']
+        dst = 'R' if src == 'L' else 'L'
+        new_state['boat'] = dst
+        for key in move:
+            new_state[src][key] -= move[key]
+            new_state[dst][key] += move[key]
+        return new_state
 
     def next_states(self, state):
-        return [state]
+        #return ( s for m in self.moves if self.is_valid(s:= self.apply_move(s,m)))
+        for move in self.moves:
+            new_state = self.apply_move(state, move)
+            if self.is_valid(new_state):
+                yield new_state
 
     def is_goal(self, state):
-        return True
+        return state == self.goal
 
     def bfs(self):
-        yield self.frontier[0]
+        while self.frontier:
+            path = self.frontier.pop(0)
+            if self.is_goal(path[-1]):
+                yield path
+            #for state in self.next_states(path[-1]):
+            #    self.frontier.append(path + [state])
+            self.frontier += [ path+[state] for state in self.next_states(path[-1]) if state not in path]
 
     def states_to_moves(self, path):
-        return []
+        #for s1, s2 in zip(path, path[1:]):
+        for i in range(len(path)-1):
+            s1 = path[i]
+            s2 = path[i+1]
+            for m in self.moves:
+                if self.apply_move(s1, m) == s2:
+                    yield m
+                    break
+
 
 if __name__ == "__main__":
     agent = Agent()
-    print(*next(agent.bfs(), ["No path found"]), sep="\n")
+    solution = next(agent.bfs(), ["No path found"])
+    print(*solution, sep="\n")
+
+    print("====== MOVES =======")
+    print(*agent.states_to_moves(solution), sep='\n')

@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
 
     colors = ['red','green','blue','yellow','x','y']
-    a = DFSAgentOptim(colors, adjacency4)
+    a = DFSAgentOptim(colors, adjacency4, lcv=True, mrw=True)
 
     for state in a.dfs():
         print(state)
