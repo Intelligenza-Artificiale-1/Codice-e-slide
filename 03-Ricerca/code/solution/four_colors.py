@@ -87,7 +87,144 @@ class DFSAgentOptim(DFSAgent):
                 for color in self.LCV_sort(state, node)
                 if self.valid_coloring(new_state := {**state, node: color}, new_node=node) and self.forward_checking(new_state))
 
-    
+import copy
+class DFSAgentDomain():
+    def __init__(self, colors, adjacency):
+        self.colors = colors
+        self.adjacency = adjacency
+        self.state = {n:[None,colors.copy()] for n in adjacency}
+        self.iters = 0
+
+    def valid_coloring(self, state, new_node=None):
+        for node in state if new_node is None else [new_node]:
+            for neighbor in self.adjacency[node]:
+                if state[neighbor][0] is not None and state[node][0] == state[neighbor][0]:
+                    return False
+        return True
+
+    def color_node(self, state, node, color):
+        new_state = copy.deepcopy(state)
+        new_state[node][0]=color
+        return new_state
+
+    def next_states(self, state):
+        for node in self.adjacency:
+            if state[node][0] is None:
+                for color in state[node][1]:
+                    new_state = self.color_node(state, node, color)
+                    if self.valid_coloring(new_state, new_node=node):
+                        yield new_state
+
+    def dfs(self):
+        self.iters += 1
+        if all(x[0] is not None for x in self.state.values()):
+            print(self.iters)
+            yield self.state
+        for new_state in self.next_states(self.state):
+            self.state = new_state
+            yield from self.dfs()
+
+class DFSAgentDomain2(DFSAgentDomain):
+    def color_node(self, state, node, color):
+        new_state = super().color_node(state, node, color)
+        for n in self.adjacency[node]:
+            if color in new_state[n][1]:
+                new_state[n][1].remove(color)
+        return new_state
+
+    def valid_coloring(self, state, new_node=None):
+        if new_node is not None:
+            return state[new_node][0] in state[new_node][1] 
+        else:
+            return all((state[node][0] in state[node][1]) for node in state if state[node][0] is not None)
+
+
+class DFSAgentOptim2(DFSAgentDomain2):
+    def __init__(self, colors, adjacency, mcv=True, lcv=True, fwc=True):
+        super().__init__(colors, adjacency)
+        self.fwc, self.lcv, self.mcv = fwc, lcv, mcv
+
+    def legal_values(self, state, node):
+        return len(state[node][1])
+
+    def forward_checking(self, state):
+        if  not self.fwc :
+            return True
+        else:
+            return all(self.legal_values(state, node) > 0 for node in self.adjacency if state[node][0] is None)
+
+    def MCV(self, state):
+        if not self.mcv:
+            return [n for n in state if state[n][0] is None][0]
+        else:
+            unassigned_variables = [n for n in self.adjacency if state[n][0] is None]
+            return min(unassigned_variables, key=lambda n:self.legal_values(state, n))
+
+    def removed_neighbors_colors(self, state, node, color):
+        neighbors = [ n for n in self.adjacency[node] if state[n][0] is None]
+        current_values = sum(self.legal_values(state, n) for n in neighbors)
+        future_state = self.color_node(state, node, color)
+        future_values =  sum(self.legal_values(future_state, n) for n in neighbors)
+        return current_values - future_values
+
+    def LCV_sort(self, state, node):
+        if not self.lcv:
+            return self.colors
+        else:
+            return sorted(self.colors, key=lambda c:self.removed_neighbors_colors(state,node,c))
+
+    def next_states(self, state):
+        node = self.MCV(state)
+        for color in self.LCV_sort(state, node):
+            new_state = self.color_node(state, node, color)
+            if self.valid_coloring(new_state, new_node=node) and self.forward_checking(new_state):
+                yield new_state
+
+class DFSAgentAC3(DFSAgentOptim2):
+    def __init__(self, colors, adjacency, *args, **kwargs):
+        super().__init__(colors, adjacency, *args, **kwargs)
+
+    def ac3(self, state, new_node=None):
+        # By default, initialize the queue with all arcs (binary constraints)
+        if new_node is not None:
+            queue = [(neighbor, new_node) for neighbor in self.adjacency[new_node] if state[neighbor][0] is None]
+        else:
+            queue = [(xi, xj) for xi in self.adjacency for xj in self.adjacency[xi] if state[xi][0] is None and state[xj][0] is None]
+        # Finché rimangono archi da elaborare
+        while queue:
+            # Estrai un arco dalla coda e applica la procedura di revisione
+            xi, xj = queue.pop(0)
+            if self.revise(state, xi, xj):
+                # Se il dominio di xi è stato modificato, verifica se è vuoto
+                if self.legal_values(state, xi) == 0:
+                    # Se il dominio è vuoto, non si può continuare per questo ramo
+                    # Restituisce False per indicare che il vincolo non può essere soddisfatto
+                    return False
+                for xk in self.adjacency[xi]:
+                    # Dato che il dominio di xi è stato modificato, è necessario ricontrollare
+                    # tutti i vincoli che coinvolgono xi e i suoi vicini (dal vicino xk a xi)
+                    if state[xk][0] is None:
+                        queue.append((xk, xi))
+        return True
+
+    def revise(self, state, xi, xj):
+        """
+        Se xj può assumere solo un valore, rimuovi quel valore dal dominio di xi
+        Restituisce True se il dominio di xi è stato modificato, altrimenti False
+        """
+        revised = False
+        if self.legal_values(state, xj) == 1 and state[xj][1][0] in state[xi][1]:
+            state[xi][1].remove(state[xj][1][0])
+            revised = True
+        return revised
+
+    def next_states(self, state):
+        node = self.MCV(state)
+        for color in self.LCV_sort(state, node):
+            new_state = self.color_node(state, node, color)
+            #nella next_states chiamo ac3 per ogni nuovo stato generato per propagare i vincoli
+            if self.valid_coloring(new_state, new_node=node) and self.ac3(new_state, new_node=node):
+                yield new_state
 
 if __name__ == "__main__":
     adjacency = {'A': ['B','G','F'],
