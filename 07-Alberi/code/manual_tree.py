@@ -1,9 +1,11 @@
 class Node:
     def __init__ (self):
+        # Se è nodo interno
         self.left = None
         self.right = None
         self.feature = None
         self.threshold = None
+        # Se è nodo foglia
         self.label = None
 
     def __str__(self, depth=1) -> str:
@@ -29,7 +31,12 @@ class Node:
         Returns:
             int: Predicted class
         """
-        return 1
+        if self.label is not None:
+            return self.label
+        if x[self.feature] > self.threshold:
+            return self.right._forward(x)
+        else:
+            return self.left._forward(x)
 
     def _gini(self, Y:list) -> float:
         """Calculates the Gini impurity of a dataset as 1 - the sum of the squared probabilities of each class
@@ -38,7 +45,7 @@ class Node:
         Returns:
             float: Gini impurity
         """
-        return 1
+        return 1 - sum( (Y.count(label)/len(Y))**2 for label in set(Y))
 
     def _best_split(self, X:list, Y:list) -> tuple:
         """Finds the best split for the data based on the Gini impurity
@@ -48,7 +55,18 @@ class Node:
         Returns:
             split(tuple): Best feature and threshold
         """
-        return (0,X[0][0])
+        best_gini = 1
+        best_split = None
+        for feature in range(len(X[0])):
+            sorted_values = sorted(x[feature] for x in X)
+            for threshold in ( (x1+x2)/2 for x1,x2 in zip(sorted_values, sorted_values[1:]) ):
+                y_left  = [y for x,y in zip(X,Y) if x[feature]< threshold ]
+                y_right = [y for x,y in zip(X,Y) if x[feature]>= threshold ]
+                gini = (len(y_left)*self._gini(y_left) + len(y_right)*self._gini(y_right))/len(Y)
+                if gini < best_gini:
+                    best_gini = gini
+                    best_split = (feature, threshold)
+        return best_split
 
     def _fit(self, X:list, Y:list, depth:int=0) -> None:
         """Recursively fits the decision tree to the data. 
@@ -61,7 +79,23 @@ class Node:
             Y(list): Labels
             depth(int): Depth of the subtree having this node as root
         """
-        self.label = max(set(Y), key=Y.count)
+        if depth==0 or len(set(Y))<=1:
+            self.label = max(set(Y), key=Y.count)
+        else:
+            self.feature, self.threshold = self._best_split(X,Y)
+            X_left  = [x for x in X if x[self.feature] < self.threshold]
+            X_right = [x for x in X if x[self.feature] >= self.threshold]
+            Y_left  = [y for x,y in zip(X,Y) if x[self.feature] < self.threshold]
+            Y_right = [y for x,y in zip(X,Y) if x[self.feature] >= self.threshold]
+
+            self.left = Node()
+            self.right = Node()
+            self.left._fit(X_left, Y_left, depth=depth-1)
+            self.right._fit(X_right, Y_right, depth=depth-1)
+
+            if self.right.label == self.left.label != None:
+                self.label = self.left.label
+                self.right, self.left = None, None 
 
 
 class DecisionTree(Node):
